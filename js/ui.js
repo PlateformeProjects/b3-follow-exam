@@ -5,6 +5,7 @@ import { calculateProgress } from './utils.js';
 const studentsGrid = document.getElementById('students-grid');
 const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
+const unitSelector = document.getElementById('unit-selector');
 
 // Modals
 const editModal = document.getElementById('edit-modal');
@@ -15,6 +16,7 @@ const editForm = document.getElementById('edit-form');
 
 export function initUI() {
     setupTheme();
+    setupUnitSelector();
     setupEventListeners();
     renderStudents();
 }
@@ -33,14 +35,34 @@ function setupTheme() {
     });
 }
 
+function setupUnitSelector() {
+    const data = getData();
+    if (!data || !data.units) return;
+
+    unitSelector.innerHTML = '';
+    data.units.forEach(unit => {
+        const option = document.createElement('option');
+        option.value = unit;
+        option.textContent = unit;
+        unitSelector.appendChild(option);
+    });
+
+    unitSelector.addEventListener('change', () => {
+        renderStudents();
+    });
+}
+
 function renderStudents() {
     const data = getData();
     if (!data) return;
 
+    const selectedUnit = unitSelector.value;
     studentsGrid.innerHTML = '';
     const stepsLength = data.steps.length;
 
-    data.students.forEach(student => {
+    const filteredStudents = data.students.filter(student => student.unit === selectedUnit);
+
+    filteredStudents.forEach(student => {
         const progress = calculateProgress(student.stepsStatus, stepsLength);
         
         const card = document.createElement('div');

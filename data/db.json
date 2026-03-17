@@ -1,16 +1,25 @@
 {
   "students": [
-    { "id": 1, "name": "Lyes", "stepsStatus": {} },
-    { "id": 2, "name": "Baptiste", "stepsStatus": {} },
-    { "id": 3, "name": "Barbara", "stepsStatus": {} },
-    { "id": 4, "name": "Chaima", "stepsStatus": {} },
-    { "id": 5, "name": "Hamza", "stepsStatus": {} },
-    { "id": 6, "name": "Lucas", "stepsStatus": {} },
-    { "id": 7, "name": "Mathis", "stepsStatus": {} },
-    { "id": 8, "name": "Mounir", "stepsStatus": {} },
-    { "id": 9, "name": "Thanh", "stepsStatus": {} },
-    { "id": 10, "name": "Vanny", "stepsStatus": {} },
-    { "id": 11, "name": "Walid", "stepsStatus": {} }
+    { "id": 1, "name": "Lyes", "unit": "Logiciels", "stepsStatus": {} },
+    { "id": 2, "name": "Baptiste", "unit": "Logiciels", "stepsStatus": {} },
+    { "id": 3, "name": "Barbara", "unit": "Logiciels", "stepsStatus": {} },
+    { "id": 4, "name": "Chaima", "unit": "Logiciels", "stepsStatus": {} },
+    { "id": 5, "name": "Hamza", "unit": "Logiciels", "stepsStatus": {} },
+    { "id": 6, "name": "Lucas", "unit": "Logiciels", "stepsStatus": {} },
+    { "id": 7, "name": "Mathis", "unit": "Logiciels", "stepsStatus": {} },
+    { "id": 8, "name": "Mounir", "unit": "Logiciels", "stepsStatus": {} },
+    { "id": 9, "name": "Thanh", "unit": "Logiciels", "stepsStatus": {} },
+    { "id": 10, "name": "Vanny", "unit": "Logiciels", "stepsStatus": {} },
+    { "id": 11, "name": "Walid", "unit": "Logiciels", "stepsStatus": {} },
+    { "id": 12, "name": "Oussema", "unit": "JVSI", "stepsStatus": {} },
+    { "id": 13, "name": "Oroitz", "unit": "JVSI", "stepsStatus": {} },
+    { "id": 14, "name": "Camélia", "unit": "JVSI", "stepsStatus": {} },
+    { "id": 15, "name": "Ali", "unit": "JVSI", "stepsStatus": {} },
+    { "id": 16, "name": "Guillaume", "unit": "JVSI", "stepsStatus": {} },
+    { "id": 17, "name": "Thibault", "unit": "JVSI", "stepsStatus": {} },
+    { "id": 18, "name": "John", "unit": "IA", "stepsStatus": {} },
+    { "id": 19, "name": "Marcel", "unit": "IA", "stepsStatus": {} },
+    { "id": 20, "name": "Lucas", "unit": "IA", "stepsStatus": {} }
   ],
   "steps": [
     { "id": "step1", "name": "Cahier des charges" },
@@ -24,5 +33,6 @@
     { "id": "step9", "name": "CI/CD + docker + mise en prod" },
     { "id": "step10", "name": "Sécurité (API, token, hashage, middleware)" }
   ],
-  "statusOptions": ["Non commencé", "En cours", "Terminé"]
+  "statusOptions": ["Non commencé", "En cours", "Terminé"],
+  "units": ["Logiciels", "JVSI", "IA"]
 }
