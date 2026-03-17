@@ -5,7 +5,6 @@ import { calculateProgress } from './utils.js';
 const studentsGrid = document.getElementById('students-grid');
 const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
-const unitSelector = document.getElementById('unit-selector');
 
 // Modals
 const editModal = document.getElementById('edit-modal');
@@ -37,10 +36,16 @@ function setupTheme() {
 
 function setupUnitSelector() {
     const data = getData();
-    if (!data || !data.units) return;
+    const unitSelector = document.getElementById('unit-selector');
+    if (!unitSelector) return;
+
+    // Use units from data or default list if data hasn't loaded properly
+    const units = (data && data.units && data.units.length > 0) 
+        ? data.units 
+        : ["Logiciels", "JVSI", "IA"];
 
     unitSelector.innerHTML = '';
-    data.units.forEach(unit => {
+    units.forEach(unit => {
         const option = document.createElement('option');
         option.value = unit;
         option.textContent = unit;
@@ -56,7 +61,9 @@ function renderStudents() {
     const data = getData();
     if (!data) return;
 
-    const selectedUnit = unitSelector.value;
+    const unitSelector = document.getElementById('unit-selector');
+    const selectedUnit = unitSelector ? unitSelector.value : "Logiciels";
+    
     studentsGrid.innerHTML = '';
     const stepsLength = data.steps.length;
 
@@ -143,8 +150,7 @@ function setupEventListeners() {
         const newStatuses = {};
         
         for (let [key, value] of formData.entries()) {
-            if (key !== 'id' && key !== 'student-id') { // "edit-student-id" is in hidden input, but FormData might capture it if it has a 'name' attribute
-                // The hidden input has id="edit-student-id" but no 'name' attribute currently, let's be safe.
+            if (key !== 'id' && key !== 'student-id') { 
                 if (key !== '') newStatuses[key] = value;
             }
         }
