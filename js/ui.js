@@ -76,6 +76,7 @@ function renderStudents() {
         card.className = 'card';
         card.innerHTML = `
             <h3>${student.name}</h3>
+            ${student.projectTitle ? `<div class="project-title-info">Projet : ${student.projectTitle}</div>` : ''}
             ${student.techStack ? `<div class="tech-stack-info">Stack : ${student.techStack}</div>` : ''}
             <div class="progress-info">Progression : ${progress}%</div>
             <div class="progress-container">
@@ -98,6 +99,15 @@ function openEditModal(studentId) {
 
     const stepsContainer = document.getElementById('steps-container');
     stepsContainer.innerHTML = '';
+
+    // Add Project Title field
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'step-item tech-stack-item';
+    titleDiv.innerHTML = `
+        <label for="edit-project-title">Titre du Projet :</label>
+        <input type="text" id="edit-project-title" name="projectTitle" placeholder="Nom de votre application" value="${student.projectTitle || ''}" style="width:100%; padding:10px; border-radius:4px; border:1px solid var(--border-color); background:var(--card-bg); color:var(--text-color);">
+    `;
+    stepsContainer.appendChild(titleDiv);
 
     // Add Tech Stack field
     const techStackDiv = document.createElement('div');
@@ -167,16 +177,19 @@ function setupEventListeners() {
         const formData = new FormData(editForm);
         const newStatuses = {};
         let techStack = "";
+        let projectTitle = "";
         
         for (let [key, value] of formData.entries()) {
             if (key === 'techStack') {
                 techStack = value;
+            } else if (key === 'projectTitle') {
+                projectTitle = value;
             } else if (key !== 'id' && key !== 'student-id' && key !== '') {
                 newStatuses[key] = value;
             }
         }
 
-        if (updateStudentStatus(studentId, newStatuses, techStack)) {
+        if (updateStudentStatus(studentId, newStatuses, techStack, projectTitle)) {
             editModal.classList.add('hidden');
             renderStudents();
         } else {

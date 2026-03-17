@@ -327,6 +327,13 @@ select {
     resize: vertical;
 }
 
+.project-title-info {
+    font-weight: bold;
+    font-size: 0.95rem;
+    margin-bottom: 5px;
+    color: var(--text-color);
+}
+
 .tech-stack-info {
     font-size: 0.85rem;
     font-style: italic;

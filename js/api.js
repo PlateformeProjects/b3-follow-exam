@@ -40,6 +40,7 @@ export async function initData() {
         data.students.forEach(student => {
             if (!student.stepsStatus) student.stepsStatus = {};
             if (student.techStack === undefined) student.techStack = "";
+            if (student.projectTitle === undefined) student.projectTitle = "";
             data.steps.forEach(step => {
                 if (!student.stepsStatus[step.id]) {
                     student.stepsStatus[step.id] = "Non commencé";
@@ -73,7 +74,7 @@ export function getStudentById(id) {
     return data.students.find(s => s.id === parseInt(id));
 }
 
-export function updateStudentStatus(studentId, stepsStatus, techStack) {
+export function updateStudentStatus(studentId, stepsStatus, techStack, projectTitle) {
     const data = getData();
     if (!data) return false;
 
@@ -82,6 +83,9 @@ export function updateStudentStatus(studentId, stepsStatus, techStack) {
         data.students[studentIndex].stepsStatus = stepsStatus;
         if (techStack !== undefined) {
             data.students[studentIndex].techStack = techStack;
+        }
+        if (projectTitle !== undefined) {
+            data.students[studentIndex].projectTitle = projectTitle;
         }
         localStorage.setItem(DB_KEY, JSON.stringify(data));
         return true;
