@@ -39,6 +39,7 @@ export async function initData() {
         // Initialize empty statuses for all students
         data.students.forEach(student => {
             if (!student.stepsStatus) student.stepsStatus = {};
+            if (student.techStack === undefined) student.techStack = "";
             data.steps.forEach(step => {
                 if (!student.stepsStatus[step.id]) {
                     student.stepsStatus[step.id] = "Non commencé";
@@ -72,13 +73,16 @@ export function getStudentById(id) {
     return data.students.find(s => s.id === parseInt(id));
 }
 
-export function updateStudentStatus(studentId, stepsStatus) {
+export function updateStudentStatus(studentId, stepsStatus, techStack) {
     const data = getData();
     if (!data) return false;
 
     const studentIndex = data.students.findIndex(s => s.id === parseInt(studentId));
     if (studentIndex !== -1) {
         data.students[studentIndex].stepsStatus = stepsStatus;
+        if (techStack !== undefined) {
+            data.students[studentIndex].techStack = techStack;
+        }
         localStorage.setItem(DB_KEY, JSON.stringify(data));
         return true;
     }

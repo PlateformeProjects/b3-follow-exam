@@ -76,6 +76,7 @@ function renderStudents() {
         card.className = 'card';
         card.innerHTML = `
             <h3>${student.name}</h3>
+            ${student.techStack ? `<div class="tech-stack-info">Stack : ${student.techStack}</div>` : ''}
             <div class="progress-info">Progression : ${progress}%</div>
             <div class="progress-container">
                 <div class="progress-bar" style="width: ${progress}%"></div>
@@ -98,6 +99,15 @@ function openEditModal(studentId) {
     const stepsContainer = document.getElementById('steps-container');
     stepsContainer.innerHTML = '';
 
+    // Add Tech Stack field
+    const techStackDiv = document.createElement('div');
+    techStackDiv.className = 'step-item tech-stack-item';
+    techStackDiv.innerHTML = `
+        <label for="edit-tech-stack">Stack Technique :</label>
+        <textarea id="edit-tech-stack" name="techStack" rows="3" placeholder="Ex: React, Node.js, MongoDB...">${student.techStack || ''}</textarea>
+    `;
+    stepsContainer.appendChild(techStackDiv);
+
     data.steps.forEach(step => {
         const currentStatus = student.stepsStatus[step.id] || "Non commencé";
         
@@ -109,6 +119,11 @@ function openEditModal(studentId) {
         
         const select = document.createElement('select');
         select.name = step.id;
+        
+        const updateSelectClass = (sel) => {
+            const val = sel.value.toLowerCase().replace(/\s+/g, '-');
+            sel.className = `status-${val}`;
+        };
 
         data.statusOptions.forEach(option => {
             const opt = document.createElement('option');
@@ -117,6 +132,9 @@ function openEditModal(studentId) {
             if (option === currentStatus) opt.selected = true;
             select.appendChild(opt);
         });
+
+        updateSelectClass(select);
+        select.addEventListener('change', () => updateSelectClass(select));
 
         stepDiv.appendChild(label);
         stepDiv.appendChild(select);
@@ -148,14 +166,17 @@ function setupEventListeners() {
         const studentId = document.getElementById('edit-student-id').value;
         const formData = new FormData(editForm);
         const newStatuses = {};
+        let techStack = "";
         
         for (let [key, value] of formData.entries()) {
-            if (key !== 'id' && key !== 'student-id') { 
-                if (key !== '') newStatuses[key] = value;
+            if (key === 'techStack') {
+                techStack = value;
+            } else if (key !== 'id' && key !== 'student-id' && key !== '') {
+                newStatuses[key] = value;
             }
         }
 
-        if (updateStudentStatus(studentId, newStatuses)) {
+        if (updateStudentStatus(studentId, newStatuses, techStack)) {
             editModal.classList.add('hidden');
             renderStudents();
         } else {
