@@ -7,35 +7,33 @@ export async function initData() {
     let data;
 
     try {
-        const response = await fetch('data/db.json');
+        // Add cache-buster to ensure we get the latest db.json in production
+        const response = await fetch(`data/db.json?v=${new Date().getTime()}`);
         if (!response.ok) throw new Error('Erreur chargement json');
         const jsonData = await response.json();
         
         if (!storedData) {
-            // First time loading
             data = jsonData;
         } else {
-            // Merge existing data with potentially new students/units from db.json
             data = JSON.parse(storedData);
             
-            // Add missing units
-            if (jsonData.units) {
-                data.units = jsonData.units;
-            }
+            // ALWAYS update units, steps, and options from the latest db.json
+            data.units = jsonData.units || ["Logiciels", "JVSI", "IA"];
+            data.steps = jsonData.steps;
+            data.statusOptions = jsonData.statusOptions;
 
-            // Add new students from db.json if they don't exist in localStorage
+            // Add new students from db.json if they don't exist
             jsonData.students.forEach(newStudent => {
                 const existing = data.students.find(s => s.id === newStudent.id);
                 if (!existing) {
                     data.students.push(newStudent);
-                } else if (!existing.unit && newStudent.unit) {
-                    existing.unit = newStudent.unit;
+                } else {
+                    // Update unit for existing students if they don't have one
+                    if (!existing.unit && newStudent.unit) {
+                        existing.unit = newStudent.unit;
+                    }
                 }
             });
-
-            // Update steps and options just in case
-            data.steps = jsonData.steps;
-            data.statusOptions = jsonData.statusOptions;
         }
 
         // Initialize empty statuses for all students
@@ -46,15 +44,20 @@ export async function initData() {
                     student.stepsStatus[step.id] = "Non commencé";
                 }
             });
-            // Ensure every student has a unit (default to Logiciels if missing)
             if (!student.unit) student.unit = "Logiciels";
         });
 
         localStorage.setItem(DB_KEY, JSON.stringify(data));
         return data;
     } catch (error) {
-        console.error("Impossible de charger les données", error);
-        return storedData ? JSON.parse(storedData) : null;
+        console.error("Erreur lors de l'initialisation des données:", error);
+        if (storedData) {
+            data = JSON.parse(storedData);
+            // Fallback units if missing in localStorage
+            if (!data.units) data.units = ["Logiciels", "JVSI", "IA"];
+            return data;
+        }
+        return null;
     }
 }
 
