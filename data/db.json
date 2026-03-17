@@ -1,0 +1,28 @@
+{
+  "students": [
+    { "id": 1, "name": "Lyes", "stepsStatus": {} },
+    { "id": 2, "name": "Baptiste", "stepsStatus": {} },
+    { "id": 3, "name": "Barbara", "stepsStatus": {} },
+    { "id": 4, "name": "Chaima", "stepsStatus": {} },
+    { "id": 5, "name": "Hamza", "stepsStatus": {} },
+    { "id": 6, "name": "Lucas", "stepsStatus": {} },
+    { "id": 7, "name": "Mathis", "stepsStatus": {} },
+    { "id": 8, "name": "Mounir", "stepsStatus": {} },
+    { "id": 9, "name": "Thanh", "stepsStatus": {} },
+    { "id": 10, "name": "Vanny", "stepsStatus": {} },
+    { "id": 11, "name": "Walid", "stepsStatus": {} }
+  ],
+  "steps": [
+    { "id": "step1", "name": "Cahier des charges" },
+    { "id": "step2", "name": "Conception (maquettage, charte graphique, user stories, fonctionnalités, architecture)" },
+    { "id": "step3", "name": "Choix de la stack technique" },
+    { "id": "step4", "name": "Modélisation de la base de données" },
+    { "id": "step5", "name": "Création de la base de données" },
+    { "id": "step6", "name": "Création des composants métiers" },
+    { "id": "step7", "name": "Création des composants d'accès à la base de donnée" },
+    { "id": "step8", "name": "Planification et exécution des tests" },
+    { "id": "step9", "name": "CI/CD + docker + mise en prod" },
+    { "id": "step10", "name": "Sécurité (API, token, hashage, middleware)" }
+  ],
+  "statusOptions": ["Non commencé", "En cours", "Terminé"]
+}

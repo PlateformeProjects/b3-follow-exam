@@ -1,0 +1,25 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Validate JSON syntax
+        run: jq empty data/db.json
+
+      - name: Build Docker Image
+        run: docker build -t b3-follow-exam:latest .
+
+      # Dans un projet réel avec backend, nous pourrions lancer des tests unitaires (Jest) ici
+      # Puisque c'est un pur vanilla, on s'assure juste que le build Docker fonctionne.
