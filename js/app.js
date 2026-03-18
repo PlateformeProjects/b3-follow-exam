@@ -1,4 +1,5 @@
 // app.js - Point d'entrée principal
+import './firebase-config.js'; // Initialise Firebase en premier !
 import { initData, subscribeToData } from './api.js';
 import { initUI } from './ui.js';
 import { onAuthChanged, login, logout } from './auth.js';
