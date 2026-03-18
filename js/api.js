@@ -18,10 +18,22 @@ export async function initData() {
         if (docSnap.exists()) {
             cachedData = docSnap.data();
             
+            // Migration: S'assurer que chaque étudiant a un teamId
+            let hasChanged = false;
+            cachedData.students.forEach(student => {
+                if (student.teamId === undefined) {
+                    student.teamId = null;
+                    hasChanged = true;
+                }
+            });
+
             // S'assurer que 'Web' est ajouté aux unités existantes
             if (cachedData.units && !cachedData.units.includes("Web")) {
                 cachedData.units.push("Web");
-                const docRef = doc(db, "projects", DOC_ID);
+                hasChanged = true;
+            }
+
+            if (hasChanged) {
                 await setDoc(docRef, cachedData);
             }
         } else {
@@ -35,6 +47,7 @@ export async function initData() {
                 if (student.techStack === undefined) student.techStack = "";
                 if (student.projectTitle === undefined) student.projectTitle = "";
                 if (student.comments === undefined) student.comments = "";
+                if (student.teamId === undefined) student.teamId = null;
                 jsonData.steps.forEach(step => {
                     if (!student.stepsStatus[step.id]) {
                         student.stepsStatus[step.id] = "Non commencé";
@@ -80,13 +93,28 @@ export async function updateStudentStatus(studentId, stepsStatus, techStack, pro
     const studentIndex = data.students.findIndex(s => s.id === parseInt(studentId));
     
     if (studentIndex !== -1) {
-        data.students[studentIndex].stepsStatus = stepsStatus;
-        if (techStack !== undefined) data.students[studentIndex].techStack = techStack;
-        if (projectTitle !== undefined) data.students[studentIndex].projectTitle = projectTitle;
-        if (name !== undefined) data.students[studentIndex].name = name;
-        if (unit !== undefined) data.students[studentIndex].unit = unit;
-        if (comments !== undefined) data.students[studentIndex].comments = comments;
+        const student = data.students[studentIndex];
         
+        // Mise à jour de l'étudiant actuel
+        student.stepsStatus = stepsStatus;
+        if (techStack !== undefined) student.techStack = techStack;
+        if (projectTitle !== undefined) student.projectTitle = projectTitle;
+        if (name !== undefined) student.name = name;
+        if (unit !== undefined) student.unit = unit;
+        if (comments !== undefined) student.comments = comments;
+        
+        // Si l'étudiant fait partie d'une équipe, synchroniser les informations du projet
+        if (student.teamId) {
+            data.students.forEach(s => {
+                if (s.teamId === student.teamId && s.id !== student.id) {
+                    s.stepsStatus = stepsStatus;
+                    s.techStack = techStack;
+                    s.projectTitle = projectTitle;
+                    // On ne synchronise pas le nom ni les commentaires individuels
+                }
+            });
+        }
+
         try {
             const docRef = doc(db, "projects", DOC_ID);
             await setDoc(docRef, data);
@@ -127,6 +155,7 @@ export async function addStudent(name, unit) {
         techStack: "",
         projectTitle: "",
         comments: "",
+        teamId: null,
         stepsStatus: {}
     };
 
@@ -145,6 +174,51 @@ export async function addStudent(name, unit) {
         return true;
     } catch (error) {
         console.error("Erreur ajout élève Firestore:", error);
+        return false;
+    }
+}
+
+export async function setPartner(studentId, partnerId) {
+    if (!cachedData) return false;
+
+    const data = { ...cachedData };
+    const student = data.students.find(s => s.id === parseInt(studentId));
+    
+    // Si partnerId est null, l'étudiant quitte son équipe
+    if (partnerId === null) {
+        const oldTeamId = student.teamId;
+        student.teamId = null;
+        
+        // Vérifier si l'ancienne équipe n'a plus qu'un seul membre
+        if (oldTeamId) {
+            const remainingMembers = data.students.filter(s => s.teamId === oldTeamId);
+            if (remainingMembers.length === 1) {
+                remainingMembers[0].teamId = null;
+            }
+        }
+    } else {
+        const partner = data.students.find(s => s.id === parseInt(partnerId));
+        if (!partner) return false;
+
+        // Définir ou réutiliser un teamId
+        const teamId = partner.teamId || `team_${Date.now()}`;
+        
+        student.teamId = teamId;
+        partner.teamId = teamId;
+
+        // Synchroniser les données du projet (on prend celles du partenaire par défaut)
+        student.projectTitle = partner.projectTitle;
+        student.techStack = partner.techStack;
+        student.stepsStatus = { ...partner.stepsStatus };
+    }
+
+    try {
+        const docRef = doc(db, "projects", DOC_ID);
+        await setDoc(docRef, data);
+        cachedData = data;
+        return true;
+    } catch (error) {
+        console.error("Erreur mise à jour partenaire:", error);
         return false;
     }
 }
