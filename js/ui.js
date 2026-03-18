@@ -1,4 +1,4 @@
-import { getData, getStudentById, updateStudentStatus, importData } from './api.js';
+import { getData, getStudentById, updateStudentStatus, importData, addStudent } from './api.js';
 import { calculateProgress } from './utils.js';
 
 // DOM Elements
@@ -8,13 +8,16 @@ const themeIcon = document.getElementById('theme-icon');
 const exportBtn = document.getElementById('export-btn');
 const importBtn = document.getElementById('import-btn');
 const importInput = document.getElementById('import-input');
+const addStudentBtn = document.getElementById('add-student-btn');
 
 // Modals
 const editModal = document.getElementById('edit-modal');
+const addModal = document.getElementById('add-modal');
 const closeBtns = document.querySelectorAll('.close-btn');
 
 // Forms
 const editForm = document.getElementById('edit-form');
+const addStudentForm = document.getElementById('add-student-form');
 
 export function initUI() {
     setupTheme();
@@ -40,19 +43,28 @@ function setupTheme() {
 function setupUnitSelector() {
     const data = getData();
     const unitSelector = document.getElementById('unit-selector');
+    const addStudentUnit = document.getElementById('add-student-unit');
     if (!unitSelector) return;
 
-    // Use units from data or default list if data hasn't loaded properly
     const units = (data && data.units && data.units.length > 0) 
         ? data.units 
         : ["Logiciels", "JVSI", "IA"];
 
     unitSelector.innerHTML = '';
+    if (addStudentUnit) addStudentUnit.innerHTML = '';
+
     units.forEach(unit => {
         const option = document.createElement('option');
         option.value = unit;
         option.textContent = unit;
         unitSelector.appendChild(option);
+
+        if (addStudentUnit) {
+            const addOption = document.createElement('option');
+            addOption.value = unit;
+            addOption.textContent = unit;
+            addStudentUnit.appendChild(addOption);
+        }
     });
 
     unitSelector.addEventListener('change', () => {
@@ -60,7 +72,7 @@ function setupUnitSelector() {
     });
 }
 
-function renderStudents() {
+export function renderStudents() {
     const data = getData();
     if (!data) return;
 
@@ -161,6 +173,27 @@ function openEditModal(studentId) {
 }
 
 function setupEventListeners() {
+    // Add Student
+    if (addStudentBtn) {
+        addStudentBtn.addEventListener('click', () => {
+            addModal.classList.remove('hidden');
+        });
+    }
+
+    addStudentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('add-student-name').value;
+        const unit = document.getElementById('add-student-unit').value;
+        
+        if (await addStudent(name, unit)) {
+            addModal.classList.add('hidden');
+            addStudentForm.reset();
+            renderStudents();
+        } else {
+            alert("Erreur lors de l'ajout de l'élève.");
+        }
+    });
+
     // Export Data
     if (exportBtn) {
         exportBtn.addEventListener('click', () => {
@@ -187,9 +220,9 @@ function setupEventListeners() {
             if (!file) return;
 
             const reader = new FileReader();
-            reader.onload = (event) => {
+            reader.onload = async (event) => {
                 const content = event.target.result;
-                if (importData(content)) {
+                if (await importData(content)) {
                     alert('Importation réussie !');
                     window.location.reload(); 
                 } else {
@@ -204,15 +237,17 @@ function setupEventListeners() {
     closeBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             editModal.classList.add('hidden');
+            addModal.classList.add('hidden');
         });
     });
 
     window.addEventListener('click', (e) => {
         if (e.target === editModal) editModal.classList.add('hidden');
+        if (e.target === addModal) addModal.classList.add('hidden');
     });
 
     // Edit Form
-    editForm.addEventListener('submit', (e) => {
+    editForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const studentId = document.getElementById('edit-student-id').value;
@@ -231,7 +266,7 @@ function setupEventListeners() {
             }
         }
 
-        if (updateStudentStatus(studentId, newStatuses, techStack, projectTitle)) {
+        if (await updateStudentStatus(studentId, newStatuses, techStack, projectTitle)) {
             editModal.classList.add('hidden');
             renderStudents();
         } else {
