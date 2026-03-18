@@ -1,35 +1,43 @@
-// auth.js - Gestion de la connexion mockée
-import { hashPassword } from './utils.js';
+// auth.js - Gestion de la connexion via Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { firebaseConfig } from './firebase-config.js';
 
-const TOKEN_KEY = 'b3_auth_token';
-const USERNAME_KEY = 'b3_auth_user';
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 
-// Mock credentials: admin / admin123
-const MOCK_ADMIN_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"; // admin123 hashed
+export function getAuthInstance() {
+    return auth;
+}
 
 export function isAuthenticated() {
-    return localStorage.getItem(TOKEN_KEY) !== null;
+    return auth.currentUser !== null;
 }
 
 export function getLoggedUser() {
-    return localStorage.getItem(USERNAME_KEY);
+    return auth.currentUser ? auth.currentUser.email : null;
 }
 
-export async function login(username, password) {
-    if (username === 'admin') {
-        const hash = await hashPassword(password);
-        if (hash === MOCK_ADMIN_HASH) {
-            // Generate a fake token
-            const fakeToken = btoa(username + ':' + Date.now());
-            localStorage.setItem(TOKEN_KEY, fakeToken);
-            localStorage.setItem(USERNAME_KEY, username);
-            return true;
-        }
+export function onAuthChanged(callback) {
+    onAuthStateChanged(auth, callback);
+}
+
+export async function login(email, password) {
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+        return true;
+    } catch (error) {
+        console.error("Erreur de connexion Firebase :", error.code, error.message);
+        return false;
     }
-    return false;
 }
 
-export function logout() {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USERNAME_KEY);
+export async function logout() {
+    try {
+        await signOut(auth);
+        return true;
+    } catch (error) {
+        console.error("Erreur de déconnexion :", error);
+        return false;
+    }
 }

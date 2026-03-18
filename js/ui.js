@@ -1,10 +1,13 @@
-import { getData, getStudentById, updateStudentStatus } from './api.js';
+import { getData, getStudentById, updateStudentStatus, importData } from './api.js';
 import { calculateProgress } from './utils.js';
 
 // DOM Elements
 const studentsGrid = document.getElementById('students-grid');
 const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
+const exportBtn = document.getElementById('export-btn');
+const importBtn = document.getElementById('import-btn');
+const importInput = document.getElementById('import-input');
 
 // Modals
 const editModal = document.getElementById('edit-modal');
@@ -158,6 +161,45 @@ function openEditModal(studentId) {
 }
 
 function setupEventListeners() {
+    // Export Data
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => {
+            const data = getData();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `suivi-projets-b3-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+
+    // Import Data
+    if (importBtn && importInput) {
+        importBtn.addEventListener('click', () => {
+            if (confirm("Attention : l'importation d'un nouveau fichier remplacera TOUTES vos données actuelles. Voulez-vous continuer ?")) {
+                importInput.click();
+            }
+        });
+        importInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const content = event.target.result;
+                if (importData(content)) {
+                    alert('Importation réussie !');
+                    window.location.reload(); 
+                } else {
+                    alert('Erreur lors de l\'importation. Vérifiez le format JSON.');
+                }
+            };
+            reader.readAsText(file);
+        });
+    }
+
     // Modals Close
     closeBtns.forEach(btn => {
         btn.addEventListener('click', () => {

@@ -1,84 +1,80 @@
-// api.js - Gère l'accès aux données (localStorage / fetch initial)
+// api.js - Gère l'accès aux données (Firebase Firestore)
+import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { 
+    getFirestore, 
+    doc, 
+    getDoc, 
+    setDoc, 
+    onSnapshot 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-const DB_KEY = 'b3_projects_db';
+const app = getApp();
+const db = getFirestore(app);
+const DOC_ID = 'current_projects';
+
+let cachedData = null;
 
 export async function initData() {
-    let storedData = localStorage.getItem(DB_KEY);
-    let data;
-
     try {
-        // Add cache-buster to ensure we get the latest db.json in production
-        const response = await fetch(`data/db.json?v=${new Date().getTime()}`);
-        if (!response.ok) throw new Error('Erreur chargement json');
-        const jsonData = await response.json();
-        
-        if (!storedData) {
-            data = jsonData;
+        const docRef = doc(db, "projects", DOC_ID);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            cachedData = docSnap.data();
         } else {
-            data = JSON.parse(storedData);
+            // Premier chargement : initialisation depuis db.json
+            const response = await fetch('data/db.json');
+            const jsonData = await response.json();
             
-            // ALWAYS update units, steps, and options from the latest db.json
-            data.units = jsonData.units || ["Logiciels", "JVSI", "IA"];
-            data.steps = jsonData.steps;
-            data.statusOptions = jsonData.statusOptions;
-
-            // Add new students from db.json if they don't exist
-            jsonData.students.forEach(newStudent => {
-                const existing = data.students.find(s => s.id === newStudent.id);
-                if (!existing) {
-                    data.students.push(newStudent);
-                } else {
-                    // Update unit for existing students if they don't have one
-                    if (!existing.unit && newStudent.unit) {
-                        existing.unit = newStudent.unit;
+            // Initialisation des statuts
+            jsonData.students.forEach(student => {
+                if (!student.stepsStatus) student.stepsStatus = {};
+                if (student.techStack === undefined) student.techStack = "";
+                if (student.projectTitle === undefined) student.projectTitle = "";
+                jsonData.steps.forEach(step => {
+                    if (!student.stepsStatus[step.id]) {
+                        student.stepsStatus[step.id] = "Non commencé";
                     }
-                }
+                });
+                if (!student.unit) student.unit = "Logiciels";
             });
+
+            await setDoc(docRef, jsonData);
+            cachedData = jsonData;
         }
-
-        // Initialize empty statuses for all students
-        data.students.forEach(student => {
-            if (!student.stepsStatus) student.stepsStatus = {};
-            if (student.techStack === undefined) student.techStack = "";
-            if (student.projectTitle === undefined) student.projectTitle = "";
-            data.steps.forEach(step => {
-                if (!student.stepsStatus[step.id]) {
-                    student.stepsStatus[step.id] = "Non commencé";
-                }
-            });
-            if (!student.unit) student.unit = "Logiciels";
-        });
-
-        localStorage.setItem(DB_KEY, JSON.stringify(data));
-        return data;
+        return cachedData;
     } catch (error) {
-        console.error("Erreur lors de l'initialisation des données:", error);
-        if (storedData) {
-            data = JSON.parse(storedData);
-            // Fallback units if missing in localStorage
-            if (!data.units) data.units = ["Logiciels", "JVSI", "IA"];
-            return data;
-        }
+        console.error("Erreur Firestore Init:", error);
         return null;
     }
 }
 
+// Pour écouter les mises à jour en temps réel
+export function subscribeToData(callback) {
+    const docRef = doc(db, "projects", DOC_ID);
+    return onSnapshot(docRef, (doc) => {
+        if (doc.exists()) {
+            cachedData = doc.data();
+            callback(cachedData);
+        }
+    });
+}
+
 export function getData() {
-    const data = localStorage.getItem(DB_KEY);
-    return data ? JSON.parse(data) : null;
+    return cachedData;
 }
 
 export function getStudentById(id) {
-    const data = getData();
-    if (!data) return null;
-    return data.students.find(s => s.id === parseInt(id));
+    if (!cachedData) return null;
+    return cachedData.students.find(s => s.id === parseInt(id));
 }
 
-export function updateStudentStatus(studentId, stepsStatus, techStack, projectTitle) {
-    const data = getData();
-    if (!data) return false;
+export async function updateStudentStatus(studentId, stepsStatus, techStack, projectTitle) {
+    if (!cachedData) return false;
 
+    const data = { ...cachedData };
     const studentIndex = data.students.findIndex(s => s.id === parseInt(studentId));
+    
     if (studentIndex !== -1) {
         data.students[studentIndex].stepsStatus = stepsStatus;
         if (techStack !== undefined) {
@@ -87,8 +83,32 @@ export function updateStudentStatus(studentId, stepsStatus, techStack, projectTi
         if (projectTitle !== undefined) {
             data.students[studentIndex].projectTitle = projectTitle;
         }
-        localStorage.setItem(DB_KEY, JSON.stringify(data));
-        return true;
+        
+        try {
+            const docRef = doc(db, "projects", DOC_ID);
+            await setDoc(docRef, data);
+            cachedData = data;
+            return true;
+        } catch (error) {
+            console.error("Erreur mise à jour Firestore:", error);
+            return false;
+        }
     }
     return false;
+}
+
+export async function importData(jsonData) {
+    try {
+        const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+        if (data && data.students && data.steps) {
+            const docRef = doc(db, "projects", DOC_ID);
+            await setDoc(docRef, data);
+            cachedData = data;
+            return true;
+        }
+        return false;
+    } catch (e) {
+        console.error("Erreur import Firestore:", e);
+        return false;
+    }
 }
