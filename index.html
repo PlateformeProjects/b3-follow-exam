@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi des Projets B3</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo="> <!-- Prevent favicon error -->
+</head>
+<body>
+    <header class="navbar">
+        <div class="container">
+            <h1>Suivi des Projets B3</h1>
+            <div class="nav-controls">
+                <select id="unit-selector" class="btn" aria-label="Select Unit">
+                    <!-- Units will be generated here -->
+                </select>
+                <button id="export-btn" class="btn" title="Exporter les données (JSON)">
+                    <span>📤 Export</span>
+                </button>
+                <button id="import-btn" class="btn" title="Importer les données (JSON)">
+                    <span>📥 Import</span>
+                </button>
+                <input type="file" id="import-input" class="hidden" accept=".json">
+                <button id="theme-toggle" class="btn" aria-label="Toggle Dark/Light Mode">
+                    <span id="theme-icon">🌙</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Section: Résumé global -->
+        <section class="dashboard-header">
+            <h2>Avancement de la classe</h2>
+            <p>Vue d'ensemble des étapes de projet pour les 3ème années.</p>
+        </section>
+
+        <!-- Section: Grille des élèves -->
+        <section id="students-grid" class="grid">
+            <!-- Les cartes des élèves seront générées ici par le JS -->
+        </section>
+    </main>
+
+    <!-- Modal de modification d'un élève -->
+    <div id="edit-modal" class="modal hidden">
+        <div class="modal-content modal-large">
+            <span class="close-edit-btn close-btn">&times;</span>
+            <h2 style="margin-bottom: 1vh;">Détail du projet : <span id="edit-student-name"></span></h2>
+            <form id="edit-form">
+                <input type="hidden" id="edit-student-id">
+                <div id="steps-container">
+                    <!-- Les étapes avec des checkbox/select seront générées ici -->
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="save-student-btn">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Chargement des scripts (modules ES6) -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

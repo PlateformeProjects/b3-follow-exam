@@ -1,0 +1,39 @@
+{
+  "students": [
+    { "id": 1, "name": "Lyes", "unit": "Logiciels", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 2, "name": "Baptiste", "unit": "Logiciels", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 3, "name": "Barbara", "unit": "Logiciels", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 4, "name": "Chaima", "unit": "Logiciels", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 5, "name": "Hamza", "unit": "Logiciels", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 6, "name": "Lucas", "unit": "Logiciels", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 7, "name": "Mathis", "unit": "Logiciels", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 8, "name": "Mounir", "unit": "Logiciels", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 9, "name": "Thanh", "unit": "Logiciels", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 10, "name": "Vanny", "unit": "Logiciels", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 11, "name": "Walid", "unit": "Logiciels", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 12, "name": "Oussema", "unit": "JVSI", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 13, "name": "Oroitz", "unit": "JVSI", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 14, "name": "Camélia", "unit": "JVSI", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 15, "name": "Ali", "unit": "JVSI", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 16, "name": "Guillaume", "unit": "JVSI", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 17, "name": "Thibault", "unit": "JVSI", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 18, "name": "John", "unit": "IA", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 19, "name": "Marcel", "unit": "IA", "stepsStatus": {}, "techStack": "", "projectTitle": "" },
+    { "id": 20, "name": "Lucas", "unit": "IA", "stepsStatus": {}, "techStack": "", "projectTitle": "" }
+  ],
+  "steps": [
+    { "id": "step1", "name": "Cahier des charges" },
+    { "id": "step2", "name": "Conception (maquettage, charte graphique, user stories, fonctionnalités, architecture)" },
+    { "id": "step3", "name": "Choix de la stack technique" },
+    { "id": "step4", "name": "Modélisation de la base de données" },
+    { "id": "step5", "name": "Création de la base de données" },
+    { "id": "step6", "name": "Création des composants métiers" },
+    { "id": "step7", "name": "Création des composants d'accès à la base de donnée" },
+    { "id": "step8", "name": "Planification et exécution des tests" },
+    { "id": "step9", "name": "CI/CD + docker + mise en prod" },
+    { "id": "step10", "name": "Sécurité (API, token, hashage, middleware)" },
+    { "id": "step11", "name": "Éco-conception" }
+  ],
+  "statusOptions": ["Non commencé", "En cours", "Terminé"],
+  "units": ["Logiciels", "JVSI", "IA"]
+}
