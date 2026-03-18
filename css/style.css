@@ -388,6 +388,12 @@ nav {
     height: 48px;
 }
 
+/* Fix pour les options des selects en mode sombre */
+select option {
+    background-color: var(--bg);
+    color: var(--text);
+}
+
 .input-group textarea {
     height: auto;
     min-height: 100px;
