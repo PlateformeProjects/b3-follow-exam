@@ -3,91 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suivi des Projets B3</title>
+    <title>B3 Follow | Dashboard d'Examen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <link rel="icon" type="image/png" href="plateforme_icon.png">
 </head>
 <body>
-    <header class="navbar">
-        <div class="container">
-            <div class="navbar-brand">
-                <img src="plateforme_icon.png" alt="Logo" class="nav-logo">
-                <h1>Suivi des Projets B3</h1>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <header>
+        <nav class="container">
+            <div class="logo">
+                <img src="plateforme_icon.png" alt="Logo" class="school-logo">
+                <h1>B3<span>Follow</span></h1>
             </div>
-            <div class="nav-controls">
-                <select id="unit-selector" class="btn" aria-label="Select Unit">
-                    <!-- Units will be generated here -->
+            
+            <div class="nav-actions">
+                <select id="unit-selector" class="unit-dropdown">
+                    <!-- Units via JS -->
                 </select>
-                <button id="add-student-btn" class="btn btn-primary" title="Ajouter un élève">
-                    <span>➕ Ajouter</span>
+                
+                <button id="add-student-btn" class="btn-icon" title="Ajouter un élève">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </button>
-                <button id="export-btn" class="btn" title="Exporter les données (JSON)">
-                    <span>📤 Export</span>
+
+                <button id="export-btn" class="btn-icon" title="Exporter JSON">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 </button>
-                <button id="theme-toggle" class="btn" aria-label="Toggle Dark/Light Mode">
-                    <span id="theme-icon">🌙</span>
+
+                <button id="theme-toggle" class="btn-icon" aria-label="Changer le thème">
+                    <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                    <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
                 </button>
-                <button id="logout-btn" class="btn" title="Déconnexion">
-                    <span>🚪</span>
+
+                <button id="logout-btn" class="btn-icon" title="Déconnexion">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 </button>
             </div>
-        </div>
+        </nav>
     </header>
 
     <main class="container">
-        <!-- Section: Résumé global -->
-        <section class="dashboard-header">
-            <h2>Avancement de la classe</h2>
-            <p>Vue d'ensemble des étapes de projet pour les 3ème années.</p>
-        </section>
+        <div class="hero">
+            <h2 class="reveal-text">Suivi des projets <span>B3</span></h2>
+            <p class="subtitle">Visualisez et gérez l'avancement des examens en temps réel.</p>
+        </div>
 
-        <!-- Section: Grille des élèves -->
-        <section id="students-grid" class="grid">
-            <!-- Les cartes des élèves seront générées ici par le JS -->
+        <section id="students-grid" class="bento-grid">
+            <!-- Cards via JS -->
         </section>
     </main>
 
-    <!-- Modal d'ajout d'un élève -->
+    <!-- Modal d'ajout -->
     <div id="add-modal" class="modal hidden">
-        <div class="modal-content">
+        <div class="modal-content bento-card-style">
             <span class="close-btn">&times;</span>
-            <h2>Ajouter un nouvel élève</h2>
+            <div class="modal-header">
+                <h3>Nouvel Étudiant</h3>
+            </div>
             <form id="add-student-form">
-                <div class="step-item">
-                    <label for="add-student-name">Nom complet :</label>
-                    <input type="text" id="add-student-name" required style="width:100%; padding:8px;">
+                <div class="input-group">
+                    <label>Nom complet</label>
+                    <input type="text" id="add-student-name" required placeholder="Ex: Jean Dupont">
                 </div>
-                <div class="step-item">
-                    <label for="add-student-unit">Filière :</label>
-                    <select id="add-student-unit" required style="width:100%; padding:8px;">
-                        <!-- Les filières seront remplies dynamiquement -->
-                    </select>
+                <div class="input-group">
+                    <label>Filière</label>
+                    <select id="add-student-unit" required></select>
                 </div>
-                <div class="form-actions" style="margin-top:20px;">
-                    <button type="submit" class="btn btn-primary">Créer l'élève</button>
+                <div class="modal-footer">
+                    <button type="submit" class="btn-main">Créer la fiche</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal de modification d'un élève -->
+    <!-- Modal d'édition -->
     <div id="edit-modal" class="modal hidden">
-        <div class="modal-content modal-large">
+        <div class="modal-content modal-large bento-card-style">
             <span class="close-btn">&times;</span>
-            <h2 style="margin-bottom: 1vh;">Détail du projet : <span id="edit-student-name"></span></h2>
+            <div class="modal-header">
+                <h3>Dossier de <span id="edit-student-name"></span></h3>
+            </div>
             <form id="edit-form">
                 <input type="hidden" id="edit-student-id">
                 <div id="steps-container">
-                    <!-- Les étapes avec des checkbox/select seront générées ici -->
+                    <!-- Dynamic sections via JS -->
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary" id="save-student-btn">Enregistrer</button>
+                    <!-- Buttons via JS -->
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Chargement des scripts (modules ES6) -->
     <script type="module" src="js/app.js"></script>
 </body>
 </html>
