@@ -187,28 +187,30 @@ function openEditModal(studentId) {
     stepsContainer.appendChild(stepsSec);
 
     // Boutons Actions
-    const actionsDiv = editModal.querySelector('.form-actions');
-    actionsDiv.className = 'modal-footer-actions';
-    actionsDiv.innerHTML = `
-        <button type="button" id="delete-student-btn" class="btn-danger-bento">Supprimer</button>
-        <div class="main-actions">
-            <button type="button" class="btn-cancel close-btn-action">Annuler</button>
-            <button type="submit" class="btn-main">Enregistrer</button>
-        </div>
-    `;
+    const actionsDiv = editModal.querySelector('.form-actions, .modal-footer-actions');
+    if (actionsDiv) {
+        actionsDiv.className = 'form-actions modal-footer-actions';
+        actionsDiv.innerHTML = `
+            <button type="button" id="delete-student-btn" class="btn-danger-bento">Supprimer</button>
+            <div class="main-actions">
+                <button type="button" class="btn-cancel close-btn-action">Annuler</button>
+                <button type="submit" class="btn-main">Enregistrer</button>
+            </div>
+        `;
 
-    document.getElementById('delete-student-btn').addEventListener('click', async () => {
-        if (confirm(`Confirmer la suppression de ${student.name} ?`)) {
-            if (await deleteStudent(student.id)) {
-                editModal.classList.add('hidden');
-                renderStudents();
+        document.getElementById('delete-student-btn').onclick = async () => {
+            if (confirm(`Confirmer la suppression de ${student.name} ?`)) {
+                if (await deleteStudent(student.id)) {
+                    editModal.classList.add('hidden');
+                    renderStudents();
+                }
             }
-        }
-    });
+        };
 
-    actionsDiv.querySelector('.close-btn-action').addEventListener('click', () => {
-        editModal.classList.add('hidden');
-    });
+        actionsDiv.querySelector('.close-btn-action').onclick = () => {
+            editModal.classList.add('hidden');
+        };
+    }
 
     editModal.classList.remove('hidden');
 }

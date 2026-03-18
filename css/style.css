@@ -123,6 +123,7 @@ nav {
 .school-logo {
     height: 40px;
     width: auto;
+    border-radius: 8px;
 }
 
 .logo h1 {
