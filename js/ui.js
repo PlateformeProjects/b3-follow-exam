@@ -192,11 +192,12 @@ function openEditModal(studentId) {
     
     data.steps.forEach(step => {
         const currentStatus = student.stepsStatus[step.id] || "Non commencé";
+        const valClass = currentStatus.toLowerCase().replace(/\s+/g, '-');
         const stepDiv = document.createElement('div');
         stepDiv.className = 'step-edit-item';
         stepDiv.innerHTML = `
             <label>${step.name}</label>
-            <select name="step_${step.id}" class="status-select-bento">
+            <select name="step_${step.id}" class="status-select-bento status-${valClass}">
                 ${data.statusOptions.map(opt => `<option value="${opt}" ${opt === currentStatus ? 'selected' : ''}>${opt}</option>`).join('')}
             </select>
         `;
