@@ -93,6 +93,37 @@ export async function updateStudentStatus(studentId, stepsStatus, techStack, pro
     return false;
 }
 
+export async function addStudent(name, unit) {
+    if (!cachedData) return false;
+
+    const newStudent = {
+        id: Date.now(), // ID unique basé sur le timestamp
+        name: name,
+        unit: unit,
+        techStack: "",
+        projectTitle: "",
+        stepsStatus: {}
+    };
+
+    // Initialiser les étapes à "Non commencé"
+    cachedData.steps.forEach(step => {
+        newStudent.stepsStatus[step.id] = "Non commencé";
+    });
+
+    const data = { ...cachedData };
+    data.students.push(newStudent);
+
+    try {
+        const docRef = doc(db, "projects", DOC_ID);
+        await setDoc(docRef, data);
+        cachedData = data;
+        return true;
+    } catch (error) {
+        console.error("Erreur ajout élève Firestore:", error);
+        return false;
+    }
+}
+
 export async function importData(jsonData) {
     try {
         const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
