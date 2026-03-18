@@ -27,6 +27,7 @@ export async function initData() {
                 if (!student.stepsStatus) student.stepsStatus = {};
                 if (student.techStack === undefined) student.techStack = "";
                 if (student.projectTitle === undefined) student.projectTitle = "";
+                if (student.comments === undefined) student.comments = "";
                 jsonData.steps.forEach(step => {
                     if (!student.stepsStatus[step.id]) {
                         student.stepsStatus[step.id] = "Non commencé";
@@ -65,7 +66,7 @@ export function getStudentById(id) {
     return cachedData.students.find(s => s.id === parseInt(id));
 }
 
-export async function updateStudentStatus(studentId, stepsStatus, techStack, projectTitle, name, unit) {
+export async function updateStudentStatus(studentId, stepsStatus, techStack, projectTitle, name, unit, comments) {
     if (!cachedData) return false;
 
     const data = { ...cachedData };
@@ -77,6 +78,7 @@ export async function updateStudentStatus(studentId, stepsStatus, techStack, pro
         if (projectTitle !== undefined) data.students[studentIndex].projectTitle = projectTitle;
         if (name !== undefined) data.students[studentIndex].name = name;
         if (unit !== undefined) data.students[studentIndex].unit = unit;
+        if (comments !== undefined) data.students[studentIndex].comments = comments;
         
         try {
             const docRef = doc(db, "projects", DOC_ID);
@@ -117,6 +119,7 @@ export async function addStudent(name, unit) {
         unit: unit,
         techStack: "",
         projectTitle: "",
+        comments: "",
         stepsStatus: {}
     };
 
@@ -135,22 +138,6 @@ export async function addStudent(name, unit) {
         return true;
     } catch (error) {
         console.error("Erreur ajout élève Firestore:", error);
-        return false;
-    }
-}
-
-export async function importData(jsonData) {
-    try {
-        const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
-        if (data && data.students && data.steps) {
-            const docRef = doc(db, "projects", DOC_ID);
-            await setDoc(docRef, data);
-            cachedData = data;
-            return true;
-        }
-        return false;
-    } catch (e) {
-        console.error("Erreur import Firestore:", e);
         return false;
     }
 }
