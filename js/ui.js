@@ -4,7 +4,6 @@ import { calculateProgress } from './utils.js';
 // DOM Elements
 const studentsGrid = document.getElementById('students-grid');
 const themeToggle = document.getElementById('theme-toggle');
-const themeIcon = document.getElementById('theme-icon');
 const exportBtn = document.getElementById('export-btn');
 const addStudentBtn = document.getElementById('add-student-btn');
 
@@ -27,14 +26,12 @@ export function initUI() {
 function setupTheme() {
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
-    themeIcon.textContent = savedTheme === 'light' ? 'Mode sombre' : 'Mode clair';
 
     themeToggle.addEventListener('click', () => {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
-        themeIcon.textContent = newTheme === 'light' ? 'Mode sombre' : 'Mode clair';
     });
 }
 
@@ -46,7 +43,7 @@ function setupUnitSelector() {
 
     const units = (data && data.units && data.units.length > 0) 
         ? data.units 
-        : ["Logiciels", "JVSI", "IA"];
+        : ["Logiciels", "JVSI", "IA", "Web"];
 
     unitSelector.innerHTML = '';
     if (addStudentUnit) addStudentUnit.innerHTML = '';
@@ -89,23 +86,26 @@ export function renderStudents() {
         card.className = 'card';
         card.innerHTML = `
             <div class="card-header">
-                <h3>${student.name}</h3>
-                <span class="unit-tag">${student.unit}</span>
-            </div>
-            <div class="card-body">
-                ${student.projectTitle ? `<div class="info-line"><strong>Projet :</strong> ${student.projectTitle}</div>` : ''}
-                ${student.techStack ? `<div class="info-line"><strong>Stack :</strong> ${student.techStack}</div>` : ''}
-                <div class="progress-section">
-                    <div class="progress-labels">
-                        <span>Avancement</span>
-                        <span>${progress}%</span>
-                    </div>
-                    <div class="progress-track">
-                        <div class="progress-fill" style="width: ${progress}%"></div>
-                    </div>
+                <span class="card-tag">${student.unit}</span>
+                <div class="card-icon-mini">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 </div>
-                ${student.comments ? `<div class="comment-line">${student.comments.substring(0, 80)}${student.comments.length > 80 ? '...' : ''}</div>` : ''}
             </div>
+            <div class="card-content">
+                <h3>${student.name}</h3>
+                ${student.projectTitle ? `<p class="project-title-info">${student.projectTitle}</p>` : '<p class="text-muted">Aucun projet défini</p>'}
+                ${student.techStack ? `<p class="tech-stack-info">${student.techStack}</p>` : ''}
+            </div>
+            <div class="progress-wrapper">
+                <div class="progress-text">
+                    <span>Progression</span>
+                    <span>${progress}%</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: ${progress}%"></div>
+                </div>
+            </div>
+            ${student.comments ? `<div class="comment-preview">${student.comments.substring(0, 60)}${student.comments.length > 60 ? '...' : ''}</div>` : ''}
         `;
         
         card.addEventListener('click', () => openEditModal(student.id));
@@ -124,93 +124,91 @@ function openEditModal(studentId) {
     const stepsContainer = document.getElementById('steps-container');
     stepsContainer.innerHTML = '';
 
-    // Section : Informations Générales
-    const generalSection = document.createElement('div');
-    generalSection.className = 'form-section';
-    generalSection.innerHTML = `
-        <h4 class="section-title">Informations générales</h4>
-        <div class="form-row">
-            <div class="form-group">
+    // Section Infos de base
+    const basicInfo = document.createElement('div');
+    basicInfo.className = 'edit-section';
+    basicInfo.innerHTML = `
+        <h4 class="section-title">Informations Générales</h4>
+        <div class="input-grid">
+            <div class="input-group">
                 <label>Nom de l'élève</label>
                 <input type="text" name="studentName" value="${student.name}" required>
             </div>
-            <div class="form-group">
+            <div class="input-group">
                 <label>Filière</label>
                 <select name="studentUnit">
                     ${data.units.map(u => `<option value="${u}" ${u === student.unit ? 'selected' : ''}>${u}</option>`).join('')}
                 </select>
             </div>
         </div>
-        <div class="form-group">
+        <div class="input-group">
             <label>Titre du projet</label>
-            <input type="text" name="projectTitle" value="${student.projectTitle || ''}" placeholder="Saisir le nom du projet">
+            <input type="text" name="projectTitle" value="${student.projectTitle || ''}" placeholder="Nom de l'application">
         </div>
-        <div class="form-group">
+        <div class="input-group">
             <label>Stack technique</label>
             <input type="text" name="techStack" value="${student.techStack || ''}" placeholder="Technologies utilisées">
         </div>
     `;
-    stepsContainer.appendChild(generalSection);
+    stepsContainer.appendChild(basicInfo);
 
-    // Section : Commentaires
-    const commentsSection = document.createElement('div');
-    commentsSection.className = 'form-section';
-    commentsSection.innerHTML = `
-        <h4 class="section-title">Commentaires et observations</h4>
-        <div class="form-group">
+    // Section Commentaires
+    const commentsSec = document.createElement('div');
+    commentsSec.className = 'edit-section';
+    commentsSec.innerHTML = `
+        <h4 class="section-title">Commentaires & Suivi</h4>
+        <div class="input-group">
             <textarea name="comments" rows="3" placeholder="Notes de suivi...">${student.comments || ''}</textarea>
         </div>
     `;
-    stepsContainer.appendChild(commentsSection);
+    stepsContainer.appendChild(commentsSec);
 
-    // Section : Suivi des étapes
-    const stepsSection = document.createElement('div');
-    stepsSection.className = 'form-section';
-    stepsSection.innerHTML = `<h4 class="section-title">État d'avancement des étapes</h4>`;
+    // Section Étapes
+    const stepsSec = document.createElement('div');
+    stepsSec.className = 'edit-section';
+    stepsSec.innerHTML = `<h4 class="section-title">Avancement des étapes</h4>`;
     
     const stepsGrid = document.createElement('div');
-    stepsGrid.className = 'steps-form-grid';
+    stepsGrid.className = 'steps-edit-grid';
     
     data.steps.forEach(step => {
         const currentStatus = student.stepsStatus[step.id] || "Non commencé";
-        const stepGroup = document.createElement('div');
-        stepGroup.className = 'form-group-compact';
-        
-        stepGroup.innerHTML = `
+        const stepDiv = document.createElement('div');
+        stepDiv.className = 'step-edit-item';
+        stepDiv.innerHTML = `
             <label>${step.name}</label>
-            <select name="step_${step.id}" class="status-select-pro">
+            <select name="step_${step.id}" class="status-select-bento">
                 ${data.statusOptions.map(opt => `<option value="${opt}" ${opt === currentStatus ? 'selected' : ''}>${opt}</option>`).join('')}
             </select>
         `;
-        stepsGrid.appendChild(stepGroup);
+        stepsGrid.appendChild(stepDiv);
     });
-    stepsSection.appendChild(stepsGrid);
-    stepsContainer.appendChild(stepsSection);
+    stepsSec.appendChild(stepsGrid);
+    stepsContainer.appendChild(stepsSec);
 
-    // Boutons d'action
+    // Boutons Actions
     const actionsDiv = editModal.querySelector('.form-actions');
-    if (actionsDiv) {
-        actionsDiv.innerHTML = `
-            <button type="button" id="delete-student-btn" class="btn btn-outline-danger">Supprimer l'élève</button>
-            <div class="main-actions">
-                <button type="button" class="btn btn-secondary close-btn-action">Fermer</button>
-                <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
-            </div>
-        `;
+    actionsDiv.className = 'modal-footer-actions';
+    actionsDiv.innerHTML = `
+        <button type="button" id="delete-student-btn" class="btn-danger-bento">Supprimer</button>
+        <div class="main-actions">
+            <button type="button" class="btn-cancel close-btn-action">Annuler</button>
+            <button type="submit" class="btn-main">Enregistrer</button>
+        </div>
+    `;
 
-        document.getElementById('delete-student-btn').addEventListener('click', async () => {
-            if (confirm(`Confirmer la suppression définitive de l'élève : ${student.name} ?`)) {
-                if (await deleteStudent(student.id)) {
-                    editModal.classList.add('hidden');
-                    renderStudents();
-                }
+    document.getElementById('delete-student-btn').addEventListener('click', async () => {
+        if (confirm(`Confirmer la suppression de ${student.name} ?`)) {
+            if (await deleteStudent(student.id)) {
+                editModal.classList.add('hidden');
+                renderStudents();
             }
-        });
+        }
+    });
 
-        actionsDiv.querySelector('.close-btn-action').addEventListener('click', () => {
-            editModal.classList.add('hidden');
-        });
-    }
+    actionsDiv.querySelector('.close-btn-action').addEventListener('click', () => {
+        editModal.classList.add('hidden');
+    });
 
     editModal.classList.remove('hidden');
 }
@@ -226,7 +224,6 @@ function setupEventListeners() {
         e.preventDefault();
         const name = document.getElementById('add-student-name').value;
         const unit = document.getElementById('add-student-unit').value;
-        
         if (await addStudent(name, unit)) {
             addModal.classList.add('hidden');
             addStudentForm.reset();
@@ -241,7 +238,7 @@ function setupEventListeners() {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `export-suivi-${new Date().toISOString().split('T')[0]}.json`;
+            a.download = `export-b3-follow-${new Date().toISOString().split('T')[0]}.json`;
             a.click();
             URL.revokeObjectURL(url);
         });
