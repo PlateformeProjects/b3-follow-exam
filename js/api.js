@@ -17,6 +17,13 @@ export async function initData() {
 
         if (docSnap.exists()) {
             cachedData = docSnap.data();
+            
+            // S'assurer que 'Web' est ajouté aux unités existantes
+            if (cachedData.units && !cachedData.units.includes("Web")) {
+                cachedData.units.push("Web");
+                const docRef = doc(db, "projects", DOC_ID);
+                await setDoc(docRef, cachedData);
+            }
         } else {
             // Premier chargement : initialisation depuis db.json
             const response = await fetch('data/db.json');

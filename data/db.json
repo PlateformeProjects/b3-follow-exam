@@ -35,5 +35,5 @@
     { "id": "step11", "name": "Éco-conception" }
   ],
   "statusOptions": ["Non commencé", "En cours", "Terminé"],
-  "units": ["Logiciels", "JVSI", "IA"]
+  "units": ["Logiciels", "JVSI", "IA", "Web"]
 }
