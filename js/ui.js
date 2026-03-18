@@ -1,4 +1,4 @@
-import { getData, getStudentById, updateStudentStatus, addStudent, deleteStudent } from './api.js';
+import { getData, getStudentById, updateStudentStatus, addStudent, deleteStudent, setPartner } from './api.js';
 import { calculateProgress } from './utils.js';
 
 // DOM Elements
@@ -82,17 +82,26 @@ export function renderStudents() {
     filteredStudents.forEach(student => {
         const progress = calculateProgress(student.stepsStatus, stepsLength);
         
+        // Trouver les partenaires
+        const partners = student.teamId 
+            ? data.students.filter(s => s.teamId === student.teamId && s.id !== student.id)
+            : [];
+
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
             <div class="card-header">
                 <span class="card-tag">${student.unit}</span>
                 <div class="card-icon-mini">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    ${partners.length > 0 
+                        ? `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
+                        : `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
+                    }
                 </div>
             </div>
             <div class="card-content">
                 <h3>${student.name}</h3>
+                ${partners.length > 0 ? `<p class="partners-list">Avec : ${partners.map(p => p.name).join(', ')}</p>` : ''}
                 ${student.projectTitle ? `<p class="project-title-info">${student.projectTitle}</p>` : '<p class="text-muted" style="font-size: 13px;">Projet non défini</p>'}
                 ${student.techStack ? `<p class="tech-stack-info">${student.techStack}</p>` : ''}
             </div>
@@ -171,6 +180,68 @@ function openEditModal(studentId) {
     `;
     stepsContainer.appendChild(basicInfo);
 
+    // Section Binôme / Équipe
+    const teamSec = document.createElement('div');
+    teamSec.className = 'edit-section';
+    const partners = student.teamId 
+        ? data.students.filter(s => s.teamId === student.teamId && s.id !== student.id)
+        : [];
+    
+    const availablePartners = data.students.filter(s => 
+        s.id !== student.id && 
+        s.unit === student.unit && 
+        (!s.teamId || s.teamId !== student.teamId)
+    );
+
+    teamSec.innerHTML = `
+        <h4 class="section-title">Binôme / Équipe</h4>
+        <div class="team-management">
+            ${partners.length > 0 ? `
+                <div class="current-partners">
+                    <p>En équipe avec : <strong>${partners.map(p => p.name).join(', ')}</strong></p>
+                    <button type="button" id="leave-team-btn" class="btn-small">Quitter l'équipe</button>
+                </div>
+            ` : `
+                <div class="add-partner">
+                    <label>Ajouter un partenaire :</label>
+                    <div class="input-with-button">
+                        <select id="partner-select">
+                            <option value="">-- Choisir un élève --</option>
+                            ${availablePartners.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                        </select>
+                        <button type="button" id="add-partner-btn" class="btn-secondary">Lier</button>
+                    </div>
+                </div>
+            `}
+        </div>
+    `;
+    stepsContainer.appendChild(teamSec);
+
+    // Event listeners pour l'équipe
+    setTimeout(() => {
+        const addPartnerBtn = document.getElementById('add-partner-btn');
+        if (addPartnerBtn) {
+            addPartnerBtn.onclick = async () => {
+                const partnerId = document.getElementById('partner-select').value;
+                if (partnerId) {
+                    if (await setPartner(student.id, partnerId)) {
+                        openEditModal(student.id); // Recharger le modal
+                    }
+                }
+            };
+        }
+        const leaveTeamBtn = document.getElementById('leave-team-btn');
+        if (leaveTeamBtn) {
+            leaveTeamBtn.onclick = async () => {
+                if (confirm("Quitter l'équipe ? Le projet ne sera plus synchronisé avec vos anciens partenaires.")) {
+                    if (await setPartner(student.id, null)) {
+                        openEditModal(student.id);
+                    }
+                }
+            };
+        }
+    }, 0);
+
     // Section Commentaires
     const commentsSec = document.createElement('div');
     commentsSec.className = 'edit-section';
@@ -211,6 +282,9 @@ function openEditModal(studentId) {
     fields.forEach(field => {
         const eventType = (field.tagName === 'SELECT') ? 'change' : 'blur';
         field.addEventListener(eventType, () => {
+            // Ne pas déclencher l'autosave pour le select des partenaires
+            if (field.id === 'partner-select') return;
+            
             handleAutosave(student.id);
             if (field.classList.contains('status-select-bento')) {
                 const val = field.value.toLowerCase().replace(/\s+/g, '-');
