@@ -93,12 +93,11 @@ export function renderStudents() {
             </div>
             <div class="card-content">
                 <h3>${student.name}</h3>
-                ${student.projectTitle ? `<p class="project-title-info">${student.projectTitle}</p>` : '<p class="text-muted">Aucun projet défini</p>'}
+                ${student.projectTitle ? `<p class="project-title-info">${student.projectTitle}</p>` : '<p class="text-muted" style="font-size: 13px;">Projet non défini</p>'}
                 ${student.techStack ? `<p class="tech-stack-info">${student.techStack}</p>` : ''}
             </div>
             <div class="progress-wrapper">
                 <div class="progress-text">
-                    <span>Progression</span>
                     <span>${progress}%</span>
                 </div>
                 <div class="progress-container">
@@ -111,6 +110,26 @@ export function renderStudents() {
         card.addEventListener('click', () => openEditModal(student.id));
         studentsGrid.appendChild(card);
     });
+}
+
+async function handleAutosave(studentId) {
+    const formData = new FormData(editForm);
+    const newStatuses = {};
+    let techStack, projectTitle, studentName, studentUnit, comments;
+    
+    for (let [key, value] of formData.entries()) {
+        if (key === 'techStack') techStack = value;
+        else if (key === 'projectTitle') projectTitle = value;
+        else if (key === 'studentName') studentName = value;
+        else if (key === 'studentUnit') studentUnit = value;
+        else if (key === 'comments') comments = value;
+        else if (key.startsWith('step_')) {
+            newStatuses[key.replace('step_', '')] = value;
+        }
+    }
+
+    await updateStudentStatus(studentId, newStatuses, techStack, projectTitle, studentName, studentUnit, comments);
+    // On ne re-render pas tout pour éviter de perdre le focus pendant la saisie
 }
 
 function openEditModal(studentId) {
@@ -186,15 +205,27 @@ function openEditModal(studentId) {
     stepsSec.appendChild(stepsGrid);
     stepsContainer.appendChild(stepsSec);
 
+    // Ajout des Event Listeners pour l'Autosave
+    const fields = stepsContainer.querySelectorAll('input, select, textarea');
+    fields.forEach(field => {
+        const eventType = (field.tagName === 'SELECT') ? 'change' : 'blur';
+        field.addEventListener(eventType, () => {
+            handleAutosave(student.id);
+            if (field.classList.contains('status-select-bento')) {
+                const val = field.value.toLowerCase().replace(/\s+/g, '-');
+                field.className = `status-select-bento status-${val}`;
+            }
+        });
+    });
+
     // Boutons Actions
     const actionsDiv = editModal.querySelector('.form-actions, .modal-footer-actions');
     if (actionsDiv) {
-        actionsDiv.className = 'form-actions modal-footer-actions';
+        actionsDiv.className = 'modal-footer-actions';
         actionsDiv.innerHTML = `
             <button type="button" id="delete-student-btn" class="btn-danger-bento">Supprimer</button>
             <div class="main-actions">
-                <button type="button" class="btn-cancel close-btn-action">Annuler</button>
-                <button type="submit" class="btn-main">Enregistrer</button>
+                <button type="button" class="btn-main close-btn-action">Terminer</button>
             </div>
         `;
 
@@ -209,6 +240,7 @@ function openEditModal(studentId) {
 
         actionsDiv.querySelector('.close-btn-action').onclick = () => {
             editModal.classList.add('hidden');
+            renderStudents(); // On re-render à la fermeture pour mettre à jour les cartes
         };
     }
 
@@ -250,35 +282,18 @@ function setupEventListeners() {
         btn.addEventListener('click', () => {
             editModal.classList.add('hidden');
             addModal.classList.add('hidden');
+            renderStudents();
         });
     });
 
     window.addEventListener('click', (e) => {
-        if (e.target === editModal) editModal.classList.add('hidden');
-        if (e.target === addModal) addModal.classList.add('hidden');
-    });
-
-    editForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const studentId = document.getElementById('edit-student-id').value;
-        const formData = new FormData(editForm);
-        const newStatuses = {};
-        let techStack, projectTitle, studentName, studentUnit, comments;
-        
-        for (let [key, value] of formData.entries()) {
-            if (key === 'techStack') techStack = value;
-            else if (key === 'projectTitle') projectTitle = value;
-            else if (key === 'studentName') studentName = value;
-            else if (key === 'studentUnit') studentUnit = value;
-            else if (key === 'comments') comments = value;
-            else if (key.startsWith('step_')) {
-                newStatuses[key.replace('step_', '')] = value;
-            }
-        }
-
-        if (await updateStudentStatus(studentId, newStatuses, techStack, projectTitle, studentName, studentUnit, comments)) {
+        if (e.target === editModal) {
             editModal.classList.add('hidden');
             renderStudents();
         }
+        if (e.target === addModal) addModal.classList.add('hidden');
     });
+
+    // On supprime l'event submit de editForm car tout est géré par l'autosave
+    editForm.onsubmit = (e) => e.preventDefault();
 }
