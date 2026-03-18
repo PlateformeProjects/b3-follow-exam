@@ -188,22 +188,24 @@ function openEditModal(studentId) {
     stepsContainer.appendChild(stepsSection);
 
     // Actions (Save and Delete)
-    const actionsDiv = document.querySelector('.form-actions');
-    actionsDiv.innerHTML = `
-        <button type="button" id="delete-student-btn" class="btn btn-danger">Supprimer l'élève</button>
-        <button type="submit" class="btn btn-primary" id="save-student-btn">Enregistrer les modifications</button>
-    `;
+    const actionsDiv = editModal.querySelector('.form-actions');
+    if (actionsDiv) {
+        actionsDiv.innerHTML = `
+            <button type="button" id="delete-student-btn" class="btn btn-danger">Supprimer l'élève</button>
+            <button type="submit" class="btn btn-primary" id="save-student-btn">Enregistrer les modifications</button>
+        `;
 
-    document.getElementById('delete-student-btn').addEventListener('click', async () => {
-        if (confirm(`Êtes-vous sûr de vouloir supprimer ${student.name} ? Cette action est irréversible.`)) {
-            if (await deleteStudent(student.id)) {
-                editModal.classList.add('hidden');
-                renderStudents();
-            } else {
-                alert("Erreur lors de la suppression.");
+        document.getElementById('delete-student-btn').addEventListener('click', async () => {
+            if (confirm(`Êtes-vous sûr de vouloir supprimer ${student.name} ? Cette action est irréversible.`)) {
+                if (await deleteStudent(student.id)) {
+                    editModal.classList.add('hidden');
+                    renderStudents();
+                } else {
+                    alert("Erreur lors de la suppression.");
+                }
             }
-        }
-    });
+        });
+    }
 
     editModal.classList.remove('hidden');
 }
