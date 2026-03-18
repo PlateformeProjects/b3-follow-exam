@@ -1,4 +1,4 @@
-import { getData, getStudentById, updateStudentStatus, importData, addStudent, deleteStudent } from './api.js';
+import { getData, getStudentById, updateStudentStatus, addStudent, deleteStudent } from './api.js';
 import { calculateProgress } from './utils.js';
 
 // DOM Elements
@@ -6,8 +6,6 @@ const studentsGrid = document.getElementById('students-grid');
 const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
 const exportBtn = document.getElementById('export-btn');
-const importBtn = document.getElementById('import-btn');
-const importInput = document.getElementById('import-input');
 const addStudentBtn = document.getElementById('add-student-btn');
 
 // Modals
@@ -90,12 +88,23 @@ export function renderStudents() {
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-            <h3>${student.name}</h3>
-            ${student.projectTitle ? `<div class="project-title-info">Projet : ${student.projectTitle}</div>` : ''}
-            ${student.techStack ? `<div class="tech-stack-info">Stack : ${student.techStack}</div>` : ''}
-            <div class="progress-info">Progression : ${progress}%</div>
-            <div class="progress-container">
-                <div class="progress-bar" style="width: ${progress}%"></div>
+            <div class="card-header">
+                <h3>${student.name}</h3>
+                <span class="badge">${student.unit}</span>
+            </div>
+            <div class="card-body">
+                ${student.projectTitle ? `<div class="project-title-info">🚀 ${student.projectTitle}</div>` : ''}
+                ${student.techStack ? `<div class="tech-stack-info">🛠️ ${student.techStack}</div>` : ''}
+                <div class="progress-wrapper">
+                    <div class="progress-text">
+                        <span>Progression</span>
+                        <span>${progress}%</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: ${progress}%"></div>
+                    </div>
+                </div>
+                ${student.comments ? `<div class="comment-preview">💬 ${student.comments.substring(0, 60)}${student.comments.length > 60 ? '...' : ''}</div>` : ''}
             </div>
         `;
         
@@ -115,20 +124,25 @@ function openEditModal(studentId) {
     const stepsContainer = document.getElementById('steps-container');
     stepsContainer.innerHTML = '';
 
-    // Basic Info Section (Name and Unit)
+    // Basic Info Section
     const basicInfoDiv = document.createElement('div');
     basicInfoDiv.className = 'edit-section';
     basicInfoDiv.innerHTML = `
-        <h3>Informations de base</h3>
-        <div class="step-item">
-            <label>Nom de l'élève :</label>
-            <input type="text" name="studentName" value="${student.name}" required>
+        <div class="section-header">
+            <span class="section-icon">👤</span>
+            <h3>Informations de base</h3>
         </div>
-        <div class="step-item">
-            <label>Filière :</label>
-            <select name="studentUnit">
-                ${data.units.map(u => `<option value="${u}" ${u === student.unit ? 'selected' : ''}>${u}</option>`).join('')}
-            </select>
+        <div class="form-grid">
+            <div class="step-item">
+                <label>Nom de l'élève</label>
+                <input type="text" name="studentName" value="${student.name}" required>
+            </div>
+            <div class="step-item">
+                <label>Filière</label>
+                <select name="studentUnit">
+                    ${data.units.map(u => `<option value="${u}" ${u === student.unit ? 'selected' : ''}>${u}</option>`).join('')}
+                </select>
+            </div>
         </div>
     `;
     stepsContainer.appendChild(basicInfoDiv);
@@ -137,27 +151,51 @@ function openEditModal(studentId) {
     const projectSection = document.createElement('div');
     projectSection.className = 'edit-section';
     projectSection.innerHTML = `
-        <h3>Détails du projet</h3>
+        <div class="section-header">
+            <span class="section-icon">🚀</span>
+            <h3>Détails du projet</h3>
+        </div>
         <div class="step-item">
-            <label for="edit-project-title">Titre du Projet :</label>
+            <label for="edit-project-title">Titre du Projet</label>
             <input type="text" id="edit-project-title" name="projectTitle" placeholder="Nom de l'application" value="${student.projectTitle || ''}">
         </div>
         <div class="step-item">
-            <label for="edit-tech-stack">Stack Technique :</label>
-            <textarea id="edit-tech-stack" name="techStack" rows="3" placeholder="Ex: React, Node.js...">${student.techStack || ''}</textarea>
+            <label for="edit-tech-stack">Stack Technique</label>
+            <textarea id="edit-tech-stack" name="techStack" rows="2" placeholder="Ex: React, Node.js...">${student.techStack || ''}</textarea>
         </div>
     `;
     stepsContainer.appendChild(projectSection);
 
+    // Comments Section
+    const commentsSection = document.createElement('div');
+    commentsSection.className = 'edit-section';
+    commentsSection.innerHTML = `
+        <div class="section-header">
+            <span class="section-icon">💬</span>
+            <h3>Commentaires & Notes</h3>
+        </div>
+        <div class="step-item">
+            <textarea name="comments" rows="4" placeholder="Ajoutez vos observations ici...">${student.comments || ''}</textarea>
+        </div>
+    `;
+    stepsContainer.appendChild(commentsSection);
+
     // Steps Section
     const stepsSection = document.createElement('div');
     stepsSection.className = 'edit-section';
-    stepsSection.innerHTML = `<h3>Étapes du projet</h3>`;
+    stepsSection.innerHTML = `
+        <div class="section-header">
+            <span class="section-icon">✅</span>
+            <h3>Étapes du projet</h3>
+        </div>
+        <div class="steps-grid-layout"></div>
+    `;
     
+    const gridLayout = stepsSection.querySelector('.steps-grid-layout');
     data.steps.forEach(step => {
         const currentStatus = student.stepsStatus[step.id] || "Non commencé";
         const stepDiv = document.createElement('div');
-        stepDiv.className = 'step-item';
+        stepDiv.className = 'step-item-compact';
         
         const label = document.createElement('label');
         label.textContent = step.name;
@@ -167,7 +205,7 @@ function openEditModal(studentId) {
         
         const updateSelectClass = (sel) => {
             const val = sel.value.toLowerCase().replace(/\s+/g, '-');
-            sel.className = `status-${val}`;
+            sel.className = `status-select status-${val}`;
         };
 
         data.statusOptions.forEach(option => {
@@ -183,16 +221,19 @@ function openEditModal(studentId) {
 
         stepDiv.appendChild(label);
         stepDiv.appendChild(select);
-        stepsSection.appendChild(stepDiv);
+        gridLayout.appendChild(stepDiv);
     });
     stepsContainer.appendChild(stepsSection);
 
-    // Actions (Save and Delete)
+    // Actions
     const actionsDiv = editModal.querySelector('.form-actions');
     if (actionsDiv) {
         actionsDiv.innerHTML = `
-            <button type="button" id="delete-student-btn" class="btn btn-danger">Supprimer l'élève</button>
-            <button type="submit" class="btn btn-primary" id="save-student-btn">Enregistrer les modifications</button>
+            <button type="button" id="delete-student-btn" class="btn btn-danger-outline">Supprimer l'élève</button>
+            <div style="display:flex; gap:10px;">
+                <button type="button" class="btn btn-secondary close-btn-action">Annuler</button>
+                <button type="submit" class="btn btn-primary" id="save-student-btn">Enregistrer</button>
+            </div>
         `;
 
         document.getElementById('delete-student-btn').addEventListener('click', async () => {
@@ -200,10 +241,12 @@ function openEditModal(studentId) {
                 if (await deleteStudent(student.id)) {
                     editModal.classList.add('hidden');
                     renderStudents();
-                } else {
-                    alert("Erreur lors de la suppression.");
                 }
             }
+        });
+
+        actionsDiv.querySelector('.close-btn-action').addEventListener('click', () => {
+            editModal.classList.add('hidden');
         });
     }
 
@@ -211,7 +254,6 @@ function openEditModal(studentId) {
 }
 
 function setupEventListeners() {
-    // Add Student
     if (addStudentBtn) {
         addStudentBtn.addEventListener('click', () => {
             addModal.classList.remove('hidden');
@@ -227,12 +269,9 @@ function setupEventListeners() {
             addModal.classList.add('hidden');
             addStudentForm.reset();
             renderStudents();
-        } else {
-            alert("Erreur lors de l'ajout de l'élève.");
         }
     });
 
-    // Export Data
     if (exportBtn) {
         exportBtn.addEventListener('click', () => {
             const data = getData();
@@ -246,32 +285,6 @@ function setupEventListeners() {
         });
     }
 
-    // Import Data
-    if (importBtn && importInput) {
-        importBtn.addEventListener('click', () => {
-            if (confirm("Attention : l'importation d'un nouveau fichier remplacera TOUTES vos données actuelles. Voulez-vous continuer ?")) {
-                importInput.click();
-            }
-        });
-        importInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = async (event) => {
-                const content = event.target.result;
-                if (await importData(content)) {
-                    alert('Importation réussie !');
-                    window.location.reload(); 
-                } else {
-                    alert('Erreur lors de l\'importation. Vérifiez le format JSON.');
-                }
-            };
-            reader.readAsText(file);
-        });
-    }
-
-    // Modals Close
     closeBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             editModal.classList.add('hidden');
@@ -284,7 +297,6 @@ function setupEventListeners() {
         if (e.target === addModal) addModal.classList.add('hidden');
     });
 
-    // Edit Form Submit
     editForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -295,6 +307,7 @@ function setupEventListeners() {
         let projectTitle = "";
         let studentName = "";
         let studentUnit = "";
+        let comments = "";
         
         for (let [key, value] of formData.entries()) {
             if (key === 'techStack') {
@@ -305,17 +318,17 @@ function setupEventListeners() {
                 studentName = value;
             } else if (key === 'studentUnit') {
                 studentUnit = value;
+            } else if (key === 'comments') {
+                comments = value;
             } else if (key.startsWith('step_')) {
                 const stepId = key.replace('step_', '');
                 newStatuses[stepId] = value;
             }
         }
 
-        if (await updateStudentStatus(studentId, newStatuses, techStack, projectTitle, studentName, studentUnit)) {
+        if (await updateStudentStatus(studentId, newStatuses, techStack, projectTitle, studentName, studentUnit, comments)) {
             editModal.classList.add('hidden');
             renderStudents();
-        } else {
-            alert('Erreur lors de la sauvegarde.');
         }
     });
 }
