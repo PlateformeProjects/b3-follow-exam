@@ -1,4 +1,4 @@
-import { getData, getStudentById, updateStudentStatus, importData, addStudent } from './api.js';
+import { getData, getStudentById, updateStudentStatus, importData, addStudent, deleteStudent } from './api.js';
 import { calculateProgress } from './utils.js';
 
 // DOM Elements
@@ -115,27 +115,47 @@ function openEditModal(studentId) {
     const stepsContainer = document.getElementById('steps-container');
     stepsContainer.innerHTML = '';
 
-    // Add Project Title field
-    const titleDiv = document.createElement('div');
-    titleDiv.className = 'step-item tech-stack-item';
-    titleDiv.innerHTML = `
-        <label for="edit-project-title">Titre du Projet :</label>
-        <input type="text" id="edit-project-title" name="projectTitle" placeholder="Nom de votre application" value="${student.projectTitle || ''}" style="width:100%; padding:10px; border-radius:4px; border:1px solid var(--border-color); background:var(--card-bg); color:var(--text-color);">
+    // Basic Info Section (Name and Unit)
+    const basicInfoDiv = document.createElement('div');
+    basicInfoDiv.className = 'edit-section';
+    basicInfoDiv.innerHTML = `
+        <h3>Informations de base</h3>
+        <div class="step-item">
+            <label>Nom de l'élève :</label>
+            <input type="text" name="studentName" value="${student.name}" required>
+        </div>
+        <div class="step-item">
+            <label>Filière :</label>
+            <select name="studentUnit">
+                ${data.units.map(u => `<option value="${u}" ${u === student.unit ? 'selected' : ''}>${u}</option>`).join('')}
+            </select>
+        </div>
     `;
-    stepsContainer.appendChild(titleDiv);
+    stepsContainer.appendChild(basicInfoDiv);
 
-    // Add Tech Stack field
-    const techStackDiv = document.createElement('div');
-    techStackDiv.className = 'step-item tech-stack-item';
-    techStackDiv.innerHTML = `
-        <label for="edit-tech-stack">Stack Technique :</label>
-        <textarea id="edit-tech-stack" name="techStack" rows="3" placeholder="Ex: React, Node.js, MongoDB...">${student.techStack || ''}</textarea>
+    // Project Details Section
+    const projectSection = document.createElement('div');
+    projectSection.className = 'edit-section';
+    projectSection.innerHTML = `
+        <h3>Détails du projet</h3>
+        <div class="step-item">
+            <label for="edit-project-title">Titre du Projet :</label>
+            <input type="text" id="edit-project-title" name="projectTitle" placeholder="Nom de l'application" value="${student.projectTitle || ''}">
+        </div>
+        <div class="step-item">
+            <label for="edit-tech-stack">Stack Technique :</label>
+            <textarea id="edit-tech-stack" name="techStack" rows="3" placeholder="Ex: React, Node.js...">${student.techStack || ''}</textarea>
+        </div>
     `;
-    stepsContainer.appendChild(techStackDiv);
+    stepsContainer.appendChild(projectSection);
 
+    // Steps Section
+    const stepsSection = document.createElement('div');
+    stepsSection.className = 'edit-section';
+    stepsSection.innerHTML = `<h3>Étapes du projet</h3>`;
+    
     data.steps.forEach(step => {
         const currentStatus = student.stepsStatus[step.id] || "Non commencé";
-        
         const stepDiv = document.createElement('div');
         stepDiv.className = 'step-item';
         
@@ -143,7 +163,7 @@ function openEditModal(studentId) {
         label.textContent = step.name;
         
         const select = document.createElement('select');
-        select.name = step.id;
+        select.name = `step_${step.id}`;
         
         const updateSelectClass = (sel) => {
             const val = sel.value.toLowerCase().replace(/\s+/g, '-');
@@ -163,11 +183,27 @@ function openEditModal(studentId) {
 
         stepDiv.appendChild(label);
         stepDiv.appendChild(select);
-        stepsContainer.appendChild(stepDiv);
+        stepsSection.appendChild(stepDiv);
     });
+    stepsContainer.appendChild(stepsSection);
 
-    const saveBtn = document.getElementById('save-student-btn');
-    saveBtn.classList.remove('hidden');
+    // Actions (Save and Delete)
+    const actionsDiv = document.querySelector('.form-actions');
+    actionsDiv.innerHTML = `
+        <button type="button" id="delete-student-btn" class="btn btn-danger">Supprimer l'élève</button>
+        <button type="submit" class="btn btn-primary" id="save-student-btn">Enregistrer les modifications</button>
+    `;
+
+    document.getElementById('delete-student-btn').addEventListener('click', async () => {
+        if (confirm(`Êtes-vous sûr de vouloir supprimer ${student.name} ? Cette action est irréversible.`)) {
+            if (await deleteStudent(student.id)) {
+                editModal.classList.add('hidden');
+                renderStudents();
+            } else {
+                alert("Erreur lors de la suppression.");
+            }
+        }
+    });
 
     editModal.classList.remove('hidden');
 }
@@ -246,7 +282,7 @@ function setupEventListeners() {
         if (e.target === addModal) addModal.classList.add('hidden');
     });
 
-    // Edit Form
+    // Edit Form Submit
     editForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -255,18 +291,25 @@ function setupEventListeners() {
         const newStatuses = {};
         let techStack = "";
         let projectTitle = "";
+        let studentName = "";
+        let studentUnit = "";
         
         for (let [key, value] of formData.entries()) {
             if (key === 'techStack') {
                 techStack = value;
             } else if (key === 'projectTitle') {
                 projectTitle = value;
-            } else if (key !== 'id' && key !== 'student-id' && key !== '') {
-                newStatuses[key] = value;
+            } else if (key === 'studentName') {
+                studentName = value;
+            } else if (key === 'studentUnit') {
+                studentUnit = value;
+            } else if (key.startsWith('step_')) {
+                const stepId = key.replace('step_', '');
+                newStatuses[stepId] = value;
             }
         }
 
-        if (await updateStudentStatus(studentId, newStatuses, techStack, projectTitle)) {
+        if (await updateStudentStatus(studentId, newStatuses, techStack, projectTitle, studentName, studentUnit)) {
             editModal.classList.add('hidden');
             renderStudents();
         } else {

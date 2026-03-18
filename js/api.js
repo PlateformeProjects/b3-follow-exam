@@ -65,7 +65,7 @@ export function getStudentById(id) {
     return cachedData.students.find(s => s.id === parseInt(id));
 }
 
-export async function updateStudentStatus(studentId, stepsStatus, techStack, projectTitle) {
+export async function updateStudentStatus(studentId, stepsStatus, techStack, projectTitle, name, unit) {
     if (!cachedData) return false;
 
     const data = { ...cachedData };
@@ -73,12 +73,10 @@ export async function updateStudentStatus(studentId, stepsStatus, techStack, pro
     
     if (studentIndex !== -1) {
         data.students[studentIndex].stepsStatus = stepsStatus;
-        if (techStack !== undefined) {
-            data.students[studentIndex].techStack = techStack;
-        }
-        if (projectTitle !== undefined) {
-            data.students[studentIndex].projectTitle = projectTitle;
-        }
+        if (techStack !== undefined) data.students[studentIndex].techStack = techStack;
+        if (projectTitle !== undefined) data.students[studentIndex].projectTitle = projectTitle;
+        if (name !== undefined) data.students[studentIndex].name = name;
+        if (unit !== undefined) data.students[studentIndex].unit = unit;
         
         try {
             const docRef = doc(db, "projects", DOC_ID);
@@ -91,6 +89,23 @@ export async function updateStudentStatus(studentId, stepsStatus, techStack, pro
         }
     }
     return false;
+}
+
+export async function deleteStudent(studentId) {
+    if (!cachedData) return false;
+
+    const data = { ...cachedData };
+    data.students = data.students.filter(s => s.id !== parseInt(studentId));
+
+    try {
+        const docRef = doc(db, "projects", DOC_ID);
+        await setDoc(docRef, data);
+        cachedData = data;
+        return true;
+    } catch (error) {
+        console.error("Erreur suppression Firestore:", error);
+        return false;
+    }
 }
 
 export async function addStudent(name, unit) {
