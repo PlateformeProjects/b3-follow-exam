@@ -503,6 +503,7 @@ select option {
     border-radius: 10px;
     border: 1px solid var(--border);
     background: var(--bg);
+    color: var(--text);
     font-size: 14px;
     outline: none;
     height: 44px;
