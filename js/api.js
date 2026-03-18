@@ -1,17 +1,13 @@
 // api.js - Gère l'accès aux données (Firebase Firestore)
-import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
-    getFirestore, 
     doc, 
     getDoc, 
     setDoc, 
     onSnapshot 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { db } from './firebase-config.js';
 
-const app = getApp();
-const db = getFirestore(app);
 const DOC_ID = 'current_projects';
-
 let cachedData = null;
 
 export async function initData() {

@@ -1,10 +1,6 @@
 // auth.js - Gestion de la connexion via Firebase
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { firebaseConfig } from './firebase-config.js';
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { auth } from './firebase-config.js';
 
 export function getAuthInstance() {
     return auth;
